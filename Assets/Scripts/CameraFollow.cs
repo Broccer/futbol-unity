@@ -1,25 +1,60 @@
 using UnityEngine;
 
-/// <summary>Futbolcuyu arkadan-yukarıdan, rakip kaleye bakacak şekilde izler.</summary>
+/// <summary>
+/// İki mod:
+///  - Side: sahayı yandan (televizyon açısı) görür, takip edilen nesneyi z ekseninde izler.
+///    Mavi sağa (+z), Kırmızı sola (-z) hücum eder.
+///  - Fixed: sabit nokta (penaltı için atıcının arkası).
+/// </summary>
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target;
-    public Vector3 offset = new Vector3(0f, 10f, -11f);
-    public float lookAhead = 4f;
-    public float smoothing = 5f;
+    public enum Mode { Side, Fixed }
 
-    public void Snap()
+    public Mode mode = Mode.Side;
+    public Transform target;
+    public float sideX = 23f;
+    public float height = 15f;
+    public float zLimit = 9f;
+    public float smoothing = 4f;
+
+    Vector3 fixedPos, fixedLook;
+
+    public void SetSide(Transform follow, bool snap)
     {
-        if (!target) return;
-        transform.position = target.position + offset;
-        transform.LookAt(target.position + Vector3.forward * lookAhead + Vector3.up);
+        mode = Mode.Side;
+        target = follow;
+        if (snap) Apply(1f);
+    }
+
+    public void SetFixed(Vector3 position, Vector3 lookAt, bool snap)
+    {
+        mode = Mode.Fixed;
+        fixedPos = position;
+        fixedLook = lookAt;
+        if (snap) Apply(1f);
     }
 
     void LateUpdate()
     {
-        if (!target) return;
-        float k = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
-        transform.position = Vector3.Lerp(transform.position, target.position + offset, k);
-        transform.LookAt(target.position + Vector3.forward * lookAhead + Vector3.up);
+        Apply(1f - Mathf.Exp(-smoothing * Time.deltaTime));
+    }
+
+    void Apply(float k)
+    {
+        Vector3 pos, look;
+        if (mode == Mode.Fixed)
+        {
+            pos = fixedPos;
+            look = fixedLook;
+        }
+        else
+        {
+            float z = target ? Mathf.Clamp(target.position.z, -zLimit, zLimit) : 0f;
+            pos = new Vector3(sideX, height, z);
+            look = new Vector3(-1.5f, 0f, z);
+        }
+        transform.position = Vector3.Lerp(transform.position, pos, k);
+        Quaternion want = Quaternion.LookRotation(look - transform.position, Vector3.up);
+        transform.rotation = Quaternion.Slerp(transform.rotation, want, k);
     }
 }
