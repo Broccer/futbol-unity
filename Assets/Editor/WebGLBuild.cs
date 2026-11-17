@@ -21,6 +21,8 @@ public static class WebGLBuild
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
         PlayerSettings.WebGL.decompressionFallback = false;
         PlayerSettings.WebGL.dataCaching = true;
+        // Sahne koddan kurulduğu için motor sınıfları (SphereCollider vb.) atılmasın
+        PlayerSettings.stripEngineCode = false;
 
         string outPath = ArgValue("-customBuildPath") ?? "build/WebGL/WebGL";
         var options = new BuildPlayerOptions
