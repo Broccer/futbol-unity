@@ -333,6 +333,8 @@ public class PitchBuilder : MonoBehaviour
     Material Mat(Color c)
     {
         if (materials.TryGetValue(c, out var m)) return m;
+        // Derlemede shader'ın atılmaması için Resources'taki malzeme esas alınır (yoksa pembe görünür)
+        if (baseMaterial == null) baseMaterial = Resources.Load<Material>("FutbolBase");
         if (baseMaterial == null)
         {
             var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
